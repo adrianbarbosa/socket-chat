@@ -21,15 +21,21 @@ io.on("connection", client => {
       .to(data.room)
       .emit("personList", users.getPeopleByRoom(data.room));
 
+    client.broadcast
+      .to(data.room)
+      .emit("createMsg", createMsg("Admin", `${data.name} joined`));
+
     cb(users.getPeopleByRoom(data.room));
   });
 
-  client.on("createMsg", data => {
+  client.on("createMsg", (data, cb) => {
     let person = users.getPerson(client.id);
 
     let msg = createMsg(person.name, data.msg);
 
     client.broadcast.to(person.room).emit("createMsg", msg);
+
+    cb(msg);
   });
 
   client.on("disconnect", () => {

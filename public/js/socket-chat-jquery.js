@@ -3,15 +3,16 @@ var name = params.get("name");
 var room = params.get("room");
 
 //jQuery references
-let usersDiv = $("#usersDiv");
-let formEnviar = $("#formEnviar");
-let txtMsg = $("#txtMsg");
+var usersDiv = $("#usersDiv");
+var formEnviar = $("#formEnviar");
+var txtMsg = $("#txtMsg");
+var divChatbox = $("#divChatbox");
 
 // render users function
 function renderUsers(people) {
   console.log(people);
 
-  let html = "";
+  var html = "";
 
   html += "<li>";
   html +=
@@ -32,6 +33,65 @@ function renderUsers(people) {
   }
 
   usersDiv.html(html);
+}
+
+function renderMsgs(msg, me) {
+  var html = "";
+  var date = new Date(msg.date);
+  var time = date.getHours() + ":" + date.getMinutes();
+
+  var adminClass = "info";
+  if (msg.name === "Admin") {
+    adminClass = "danger";
+  }
+
+  if (me) {
+    html += ' <li class="reverse">';
+    html += '<div class="chat-content">';
+    html += "<h5>" + msg.name + "</h5>";
+    html += '<div class="box bg-light-inverse">' + msg.msg + "</div>";
+    html += "</div>";
+    html += '<div class="chat-img">';
+    html += '<img src="assets/images/users/5.jpg" alt="user" />';
+    html += "</div>";
+    html += ' <div class="chat-time">' + time + "</div>";
+    html += "</li>";
+  } else {
+    html += '<li class="animated fadeIn">';
+
+    if (msg.name !== "Admin") {
+      html +=
+        '<div class="chat-img"><img src="assets/images/users/1.jpg" alt="user" /></div>';
+    }
+    html += '<div class="chat-content">';
+    html += ' <h5 class="">' + msg.name + "</h5>";
+    html +=
+      '  <div class="box bg-light-' + adminClass + '">' + msg.msg + "</div>";
+    html += "</div>";
+    html += '<div class="chat-time">' + time + "</div>";
+    html += "</li>";
+  }
+
+  divChatbox.append(html);
+}
+
+function scrollBottom() {
+  // selectors
+  var newMessage = divChatbox.children("li:last-child");
+
+  // heights
+  var clientHeight = divChatbox.prop("clientHeight");
+  var scrollTop = divChatbox.prop("scrollTop");
+  var scrollHeight = divChatbox.prop("scrollHeight");
+  var newMessageHeight = newMessage.innerHeight();
+  var lastMessageHeight = newMessage.prev().innerHeight() || 0;
+
+  if (
+    clientHeight + scrollTop + newMessageHeight + lastMessageHeight >=
+    scrollHeight
+  ) {
+    divChatbox.scrollTop(scrollHeight);
+  }
 }
 
 // Listeners
@@ -56,8 +116,10 @@ formEnviar.on("submit", function(e) {
       name: name,
       msg: txtMsg.val()
     },
-    function(resp) {
-      console.log("respuesta server: ", resp);
+    function(msg) {
+      txtMsg.val("").focus();
+      renderMsgs(msg, true);
+      scrollBottom();
     }
   );
 });
